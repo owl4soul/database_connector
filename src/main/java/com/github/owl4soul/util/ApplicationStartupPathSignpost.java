@@ -18,8 +18,8 @@ public class ApplicationStartupPathSignpost {
      * @return путь к текущему каталогу запуска.
      * @throws URISyntaxException ошибка при попытке получить URI из URL.
      */
-    public Path getApplicationStartupPath() throws URISyntaxException {
-        URL startupPath = getClass().getProtectionDomain().getCodeSource().getLocation();
+    public static Path getApplicationStartupPath() throws URISyntaxException {
+        URL startupPath = ApplicationStartupPathSignpost.class.getProtectionDomain().getCodeSource().getLocation();
         Path path = Paths.get(startupPath.toURI());
         path = path.getParent();
 
