@@ -1,6 +1,5 @@
-package com.github.owl4soul;
+package com.github.owl4soul.util;
 
-import com.github.owl4soul.util.ApplicationStartupPathSignpost;
 import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;

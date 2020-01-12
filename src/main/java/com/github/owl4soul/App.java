@@ -1,6 +1,7 @@
 package com.github.owl4soul;
 
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
+import com.github.owl4soul.util.PropertiesLoader;
 import org.apache.log4j.Logger;
 
 import java.nio.file.Path;
