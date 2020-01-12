@@ -35,5 +35,12 @@ public class App {
 
         Properties databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile();
         Connection connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties);
+
+        // Вывод сообщений о результате установки соединения с бд.
+        if (connection != null) {
+            LOGGER.info("Database connection successfully established.");
+        } else {
+            LOGGER.info("Failed to connect to database!");
+        }
     }
 }
