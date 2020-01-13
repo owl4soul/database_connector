@@ -41,15 +41,14 @@ public class App {
         Properties databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile();
         connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties);
 
-        // Вывод сообщений о результате установки соединения с бд.
+        // Вывод сообщения о результате установки соединения с бд.
         if (connection != null) {
             LOGGER.info("Database connection successfully established.");
-        } else {
-            LOGGER.info("Failed to connect to database!");
-            System.exit(-1);
         }
 
-        interactWithDdByUserInput();
+		while (true) {
+			interactWithDdByUserInput();
+		}
     }
 
     /**
@@ -57,7 +56,6 @@ public class App {
      * Работа метода заключается в получении запроса от пользователя и
      * передаче этого запроса на выполнение в подключенную базу данных.
      * Результат выполнения запроса выводится пользователю построчно.
-     * Метод бесконечно рекурсивно вызывает себя.
      */
     private static void interactWithDdByUserInput() {
         System.out.println("Введите запрос: ");
@@ -85,6 +83,5 @@ public class App {
         }
 
         System.out.println("\n_______________________________________________________________________________\n");
-        interactWithDdByUserInput();
     }
 }
