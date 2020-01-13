@@ -32,7 +32,7 @@ public class JdbcDatabaseConnector {
             Class.forName(driver);
         } catch (ClassNotFoundException e) {
             LOGGER.error("Driver with name " + driver + " could not be found!");
-            return null;
+            throw new IllegalStateException("DRIVER FATAL ERROR!");
         }
 
         // Получение активного соединения к указанной бд.
@@ -41,6 +41,7 @@ public class JdbcDatabaseConnector {
             connection = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
             LOGGER.error("Connection refused!");
+            throw new IllegalStateException("CONNECTION FATAL ERROR!");
         }
 
         return connection;
