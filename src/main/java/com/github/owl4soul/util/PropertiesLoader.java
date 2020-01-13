@@ -13,32 +13,17 @@ public class PropertiesLoader {
 
     private static final Logger LOGGER = Logger.getLogger(PropertiesLoader.class);
 
-    private static final String SLASH = System.getProperty("file.separator");
-
-    private static final String PROPERTIES_FILENAME = "database.properties";
-
-    private static final String DATABASE_PROPERTIES_PATH =
-            ApplicationStartupPathSignpost.getApplicationStartupPath() +
-            SLASH +
-            PROPERTIES_FILENAME;
-
-
     /**
-     * Получение пропертис из файла по дефолтному пути.
-     * @return
+     * Получение пропертис из файла по заданному пути.
+     * @return Properties
      */
-    public static Properties getDatabasePropertiesFromFile() {
+    public static Properties getDatabasePropertiesFromFile(String pathToProperties) {
         Properties databaseProperties = new Properties();
-        try (FileInputStream fileInputStream = new FileInputStream(DATABASE_PROPERTIES_PATH)){
+        try (FileInputStream fileInputStream = new FileInputStream(pathToProperties)){
             databaseProperties.load(fileInputStream);
-
-            LOGGER.debug("Properties was loaded: ");
-            LOGGER.debug("db.url=" + databaseProperties.getProperty("db.url"));
-            LOGGER.debug("db.user=" + databaseProperties.getProperty("db.user"));
-            LOGGER.debug("db.password=" + databaseProperties.getProperty("db.password"));
-            LOGGER.debug("db.driver=" + databaseProperties.getProperty("db.driver"));
         } catch (IOException e) {
-            LOGGER.error("An error occured while trying to get properties from file by path: " + DATABASE_PROPERTIES_PATH);
+            LOGGER.error("An error occured while trying to get properties from file by path: " + pathToProperties);
+            throw new IllegalStateException("No properties!");
         }
 
         return databaseProperties;

@@ -1,6 +1,7 @@
 package com.github.owl4soul;
 
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
+import com.github.owl4soul.util.Constants;
 import com.github.owl4soul.util.PropertiesLoader;
 import org.apache.log4j.Logger;
 
@@ -38,7 +39,15 @@ public class App {
                 "\nПо данному пути приложение ищет файл с настройками для подключения к базе данных...\n\n";
         System.out.println(currentPathMsg);
 
-        Properties databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile();
+        // Получение properties по заданному пути.
+        Properties databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
+
+		LOGGER.debug("Properties was loaded: ");
+		LOGGER.debug("db.url=" + databaseProperties.getProperty("db.url"));
+		LOGGER.debug("db.user=" + databaseProperties.getProperty("db.user"));
+		LOGGER.debug("db.password=" + databaseProperties.getProperty("db.password"));
+		LOGGER.debug("db.driver=" + databaseProperties.getProperty("db.driver"));
+
         connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties);
 
         // Вывод сообщения о результате установки соединения с бд.
@@ -46,7 +55,7 @@ public class App {
             LOGGER.info("Database connection successfully established.");
         }
 
-		while (true) {
+		while (connection != null) {
 			interactWithDdByUserInput();
 		}
     }
