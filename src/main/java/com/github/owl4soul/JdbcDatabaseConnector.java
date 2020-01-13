@@ -25,18 +25,9 @@ public class JdbcDatabaseConnector {
         String url = properties.getProperty("db.url");
         String user = properties.getProperty("db.user");
         String password = properties.getProperty("db.password");
-        String driver = properties.getProperty("db.driver");
-
-        // Подключение драйвера.
-        try {
-            Class.forName(driver);
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("Driver with name " + driver + " could not be found!");
-            throw new IllegalStateException("DRIVER FATAL ERROR!");
-        }
 
         // Получение активного соединения к указанной бд.
-        Connection connection = null;
+        Connection connection;
         try {
             connection = DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {
