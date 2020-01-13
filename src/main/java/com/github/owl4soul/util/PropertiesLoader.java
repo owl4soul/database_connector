@@ -17,14 +17,10 @@ public class PropertiesLoader {
      * Получение пропертис из файла по заданному пути.
      * @return Properties
      */
-    public static Properties getDatabasePropertiesFromFile(String pathToProperties) {
+    public static Properties getDatabasePropertiesFromFile(String pathToProperties) throws IOException {
         Properties databaseProperties = new Properties();
-        try (FileInputStream fileInputStream = new FileInputStream(pathToProperties)){
-            databaseProperties.load(fileInputStream);
-        } catch (IOException e) {
-            LOGGER.error("An error occured while trying to get properties from file by path: " + pathToProperties);
-            throw new IllegalStateException("No properties!");
-        }
+        FileInputStream fileInputStream = new FileInputStream(pathToProperties);
+        databaseProperties.load(fileInputStream);
 
         return databaseProperties;
     }

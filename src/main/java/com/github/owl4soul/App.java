@@ -5,6 +5,7 @@ import com.github.owl4soul.util.Constants;
 import com.github.owl4soul.util.PropertiesLoader;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -40,13 +41,18 @@ public class App {
         System.out.println(currentPathMsg);
 
         // Получение properties по заданному пути.
-        Properties databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
+        Properties databaseProperties;
+        try {
+            databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
+        } catch (IOException e) {
+            LOGGER.error("An error occured while trying to get properties from file by path: " + Constants.DATABASE_PROPERTIES_FULL_PATH);
+            throw new RuntimeException("No properties!");
+        }
 
-		LOGGER.debug("Properties was loaded: ");
+        LOGGER.debug("Properties was loaded: ");
 		LOGGER.debug("db.url=" + databaseProperties.getProperty("db.url"));
 		LOGGER.debug("db.user=" + databaseProperties.getProperty("db.user"));
 		LOGGER.debug("db.password=" + databaseProperties.getProperty("db.password"));
-		LOGGER.debug("db.driver=" + databaseProperties.getProperty("db.driver"));
 
         connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties);
 
