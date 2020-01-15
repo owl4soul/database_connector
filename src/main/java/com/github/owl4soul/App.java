@@ -1,17 +1,11 @@
 package com.github.owl4soul;
 
+import com.github.owl4soul.interfaces.InitConsoleDbInteractionTaskPerformerImpl;
+import com.github.owl4soul.interfaces.TaskPerformer;
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
-import com.github.owl4soul.util.Constants;
-import com.github.owl4soul.util.PropertiesLoader;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
 
 /**
  * Главный класс приложения, запускающий взаимодействие пользователя с базой данных.
@@ -19,8 +13,6 @@ import java.util.Properties;
 public class App {
 
     private static final Logger LOGGER = Logger.getLogger(App.class);
-
-    private static Connection connection;
 
     public static void main(String[] args) {
         System.out.println("Hello World!");
@@ -34,69 +26,12 @@ public class App {
             System.exit(-1);
         }
 
-
         String currentPathMsg = "Каталог запуска приложения :\n" +
                 currentApplicationCatalog +
                 "\nПо данному пути приложение ищет файл с настройками для подключения к базе данных...\n\n";
         System.out.println(currentPathMsg);
 
-        // Получение properties по заданному пути.
-        Properties databaseProperties;
-        try {
-            databaseProperties = PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
-        } catch (IOException e) {
-            LOGGER.error("An error occured while trying to get properties from file by path: " + Constants.DATABASE_PROPERTIES_FULL_PATH);
-            throw new RuntimeException("No properties!");
-        }
-
-        LOGGER.debug("Properties was loaded: ");
-		LOGGER.debug("db.url=" + databaseProperties.getProperty("db.url"));
-		LOGGER.debug("db.user=" + databaseProperties.getProperty("db.user"));
-		LOGGER.debug("db.password=" + databaseProperties.getProperty("db.password"));
-
-        connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties);
-
-        // Вывод сообщения о результате установки соединения с бд.
-        if (connection != null) {
-            LOGGER.info("Database connection successfully established.");
-        }
-
-		while (connection != null) {
-			interactWithDdByUserInput();
-		}
-    }
-
-    /**
-     * Интерактивное взаимодействие с пользователем.
-     * Работа метода заключается в получении запроса от пользователя и
-     * передаче этого запроса на выполнение в подключенную базу данных.
-     * Результат выполнения запроса выводится пользователю построчно.
-     */
-    private static void interactWithDdByUserInput() {
-        System.out.println("Введите запрос: ");
-        String userInput = new UserInput().getUserInput();
-
-
-        try {
-            // Получение стейтмента
-            Statement statement = connection.createStatement();
-
-            // Получение результата выполнения запроса пользователя
-            ResultSet resultSet = statement.executeQuery(userInput);
-
-            while (resultSet.next()) {
-                int columnsCount = resultSet.getMetaData().getColumnCount();
-
-                System.out.println("\n");
-                for (int i = 1; i <= columnsCount; i++) {
-                    System.out.print(resultSet.getString(i) + "    |    ");
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.error(e);
-            System.out.println("Запрос не может быть обработан!");
-        }
-
-        System.out.println("\n_______________________________________________________________________________\n");
+        TaskPerformer taskPerformer = new InitConsoleDbInteractionTaskPerformerImpl();
+        taskPerformer.performTask();
     }
 }
