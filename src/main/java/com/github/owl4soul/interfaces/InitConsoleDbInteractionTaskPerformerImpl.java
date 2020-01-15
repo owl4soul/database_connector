@@ -6,6 +6,7 @@ import com.github.owl4soul.util.Constants;
 import com.github.owl4soul.util.PropertiesLoader;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.Properties;
 
@@ -21,9 +22,14 @@ public class InitConsoleDbInteractionTaskPerformerImpl implements TaskPerformer 
 	 * возможность взаимодействия пользователя с бд через консоль.
 	 */
 	@Override
-	public void performTask() {
-		Properties databaseProperties =
-				PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
+	public void performTask() throws Exception {
+		Properties databaseProperties = null;
+		try {
+			databaseProperties =
+					PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
+		} catch (IOException e) {
+			LOGGER.error("No properties!", e);
+		}
 
 		try (// Установка соединения с бд
 			 Connection connection = new JdbcDatabaseConnector().getDatabaseConnection(databaseProperties)) {
@@ -41,6 +47,7 @@ public class InitConsoleDbInteractionTaskPerformerImpl implements TaskPerformer 
 			}
 		} catch (Exception e) {
 			LOGGER.error(e);
+			throw new Exception("Could not perform task!");
 		}
 	}
 }

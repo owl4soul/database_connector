@@ -9,5 +9,5 @@ public interface TaskPerformer {
 	/**
 	 * Выполнение некоторой задачи.
 	 */
-	void performTask();
+	void performTask() throws Exception;
 }

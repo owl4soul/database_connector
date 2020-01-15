@@ -3,6 +3,13 @@ package com.github.owl4soul;
 import com.github.owl4soul.interfaces.InitConsoleDbInteractionTaskPerformerImpl;
 import com.github.owl4soul.interfaces.TaskPerformer;
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
+import javafx.application.Application;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 
 import java.nio.file.Path;
@@ -10,7 +17,7 @@ import java.nio.file.Path;
 /**
  * Главный класс приложения, запускающий взаимодействие пользователя с базой данных.
  */
-public class App {
+public class App  {
 
     private static final Logger LOGGER = Logger.getLogger(App.class);
 
@@ -32,6 +39,10 @@ public class App {
         System.out.println(currentPathMsg);
 
         TaskPerformer taskPerformer = new InitConsoleDbInteractionTaskPerformerImpl();
-        taskPerformer.performTask();
-    }
+		try {
+			taskPerformer.performTask();
+		} catch (Exception e) {
+			LOGGER.error(e);
+		}
+	}
 }
