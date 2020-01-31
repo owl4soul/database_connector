@@ -46,7 +46,7 @@ public class InitConsoleDbInteractionTaskPerformerImpl implements TaskPerformer 
 				consoleDbInteractionService.interactWithDdByUserInput(connection);
 			}
 		} catch (Exception e) {
-			LOGGER.error(e);
+			LOGGER.error(e.getMessage(), e);
 			throw new Exception("Could not perform task!");
 		}
 	}
