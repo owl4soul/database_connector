@@ -36,7 +36,7 @@ public class FoldersExaminator {
 
 	private static List<File> allTargetFolders = new ArrayList<>();
 
-	private static List<File> differentByContentFromEqualByNameFiles = new ArrayList<>();
+	private static Set<File> differentByContentFromEqualByNameFiles = new HashSet<>();
 
 	public static void main(String... paths) throws IOException {
 		// Принимаем аргумент, который должен указать корневую директорию с папками, которые будем проверять
@@ -59,7 +59,7 @@ public class FoldersExaminator {
 		}
 
 		for (File commonFile : equalByNameFiles) {
-			List<File> filesToCheck = new ArrayList<>();
+			Set<File> filesToCheck = new HashSet<>();
 
 			for (Map.Entry<File, File[]> mappedFolderEntry : mappedTargetFolders.entrySet()) {
 				File[] filesInFolder = mappedFolderEntry.getValue();
@@ -70,12 +70,14 @@ public class FoldersExaminator {
 				}
 			}
 
+			List<File> filesToCheckList = new ArrayList<>(filesToCheck);
 			for (int i = 0; i < filesToCheck.size() - 1; i++) {
-				boolean contentsAreIdentical = checkIfContentsAreIdentical(filesToCheck.get(i), filesToCheck.get(i + 1));
+				boolean contentsAreIdentical = checkIfContentsAreIdentical(filesToCheckList.get(i), filesToCheckList.get(i + 1));
 
 				if (!contentsAreIdentical) {
 					// TODO: пока так
-					differentByContentFromEqualByNameFiles.add(filesToCheck.get(i));
+					differentByContentFromEqualByNameFiles.add(filesToCheckList.get(i));
+					differentByContentFromEqualByNameFiles.add(filesToCheckList.get(i+1));
 				}
 			}
 		}
@@ -122,6 +124,20 @@ public class FoldersExaminator {
 		System.out.println("Different NAMES of same named files with different content: ");
 		for (String nameOfFile :  namesOfDifferentContentFiles) {
 			System.out.println(nameOfFile);
+		}
+
+
+		System.out.println("--------------------------------------------------------------");
+		equalByNameFiles.removeAll(differentByContentFromEqualByNameFiles);
+		System.out.println("After removing all samenamed-but-different-content from equal-by-name files COUNT = " +
+						   equalByNameFiles.size());
+		System.out.println("Equal named files NOW: ");
+		if (equalByNameFiles.isEmpty()) {
+			System.out.println("NOT FOUND");
+		} else {
+			for (File commonFile : equalByNameFiles) {
+				System.out.println(commonFile.getName());
+			}
 		}
 	}
 
@@ -190,15 +206,21 @@ public class FoldersExaminator {
 		Collections.addAll(folder2Files, mappedTargetFolders.get(folder2));
 
 		folder1Files.retainAll(folder2Files);
+		folder2Files.retainAll(folder1Files);
 
 		notEqualByName.addAll(folder1Files);
+		notEqualByName.addAll(folder2Files);
 
 		Set<File> folder1FromMap = new HashSet<>();
 		Collections.addAll(folder1FromMap, mappedTargetFolders.get(folder1));
+		Set<File> folder2FromMap = new HashSet<>();
+		Collections.addAll(folder2FromMap, mappedTargetFolders.get(folder2));
 
 		folder1FromMap.removeAll(folder1Files);
+		folder2FromMap.removeAll(folder2Files);
 
 		equalByNameFiles.addAll(folder1FromMap);
+		equalByNameFiles.addAll(folder2FromMap);
 
 	}
 }
