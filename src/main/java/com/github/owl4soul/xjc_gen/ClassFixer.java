@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class ClassFixer {
@@ -16,6 +17,25 @@ public class ClassFixer {
 	private String fixedName;
 
 	private boolean shouldReplaceFileWithFixed;
+
+	void deleteTargetFilesFromCommonDir() {
+		String commonDirPath = Constants.FULLPATH_TO_COMMON_FOLDER;
+
+		File commonDir = new File(commonDirPath);
+		List<File> commonFiles = Arrays.asList(commonDir.listFiles());
+
+		Iterator<File> fileIterator = commonFiles.iterator();
+		while (fileIterator.hasNext()) {
+			File javaFile = fileIterator.next();
+			String fileName = javaFile.getName();
+			if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java") || fileName.equals("IncludeInList.java")) {
+				boolean succsesfullyDeleted = javaFile.delete();
+				if (!succsesfullyDeleted) {
+					System.out.println("COULD NOT DELETE FILE:  " + fileName);
+				}
+			}
+		}
+	}
 
 	void moveFiles() {
 		String srcPath = Constants.ROOT_PATH + Constants.CURRENT_SPARK_DIR_NAME + "\\src\\";
@@ -34,7 +54,8 @@ public class ClassFixer {
 		for (File targetDir : targetDirs) {
 			List<File> javaFiles = Arrays.asList(targetDir.listFiles());
 			for (File javaFile : javaFiles) {
-				if (javaFile.getName().equals("ObjectFactory.java") || javaFile.getName().equals("Response.java")) {
+				String fileName = javaFile.getName();
+				if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java") || fileName.equals("IncludeInList.java")) {
 					// Достаем контент, который будем заменять вместе с названием файла
 					String fixedContent = readFixedContentFromFile(javaFile);
 					writeContentToFile(Constants.FULLPATH_TO_COMMON_FOLDER + fixedName, fixedContent);
@@ -53,7 +74,7 @@ public class ClassFixer {
 		String fileContent = readFixedContentFromFile(classFile, command);
 
 		if (shouldReplaceFileWithFixed) {
-			classFile.delete();
+//			classFile.delete();
 			String replacementFileName = className + "_" + getPostfixByCommand(command);
 			String replacementFileFullPath = Constants.FULLPATH_TO_COMMON_FOLDER + replacementFileName + ".java";
 			writeContentToFile(replacementFileFullPath, fileContent);
@@ -87,8 +108,10 @@ public class ClassFixer {
 					TargetTriggers targetTrigger = TargetTriggers.getTargetTriggerByLine(line);
 					// Получаем постфикс по имени схемы (которая соответствовала ранее имени пакета)
 					String postfix = getPostfixByFile(file);
+					// Инициализируем исправленное имя для файла, под которым его будем сохранять
 					fixedName = file.getName().replace(".java", "") + "_" + postfix + ".java";
-					String fixedLine = targetTrigger.getFixedLineRepresentation(postfix);
+					// Получаем исправленную строку и записываем ее в буфер контента, с которым будем сохранять файл
+					String fixedLine = targetTrigger.getFixedLineRepresentation(line, postfix);
 					stringBuilder.append(fixedLine + "\r\n");
 				} else {
 					stringBuilder.append(line + "\r\n");
@@ -118,7 +141,7 @@ public class ClassFixer {
 					TargetTriggers targetTrigger = TargetTriggers.getTargetTriggerByLine(line);
 					// Получаем постфикс по имени схемы (которая соответствовала ранее имени пакета)
 					String postfix = getPostfixByCommand(command);
-					String fixedLine = targetTrigger.getFixedLineRepresentation(postfix);
+					String fixedLine = targetTrigger.getFixedLineRepresentation(line, postfix);
 					stringBuilder.append(fixedLine + "\r\n");
 				} else {
 					stringBuilder.append(line + "\r\n");
@@ -159,9 +182,8 @@ public class ClassFixer {
 			this.lineRepresentation = lineRepresentation;
 		}
 
-		 String getFixedLineRepresentation(String postfix){
-			 String result = this.lineRepresentation;
-			 return result.replace(this.targetCharsToReplace, targetCharsToReplace + "_"  + postfix);
+		 String getFixedLineRepresentation(String line, String postfix){
+			 return line.replace(this.targetCharsToReplace, targetCharsToReplace + "_"  + postfix);
 		 }
 
 		static List<String> getAllTargetRepresentationLines() {

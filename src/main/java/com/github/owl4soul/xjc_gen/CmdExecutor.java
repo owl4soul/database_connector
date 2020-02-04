@@ -8,7 +8,10 @@ import java.util.List;
 
 public class CmdExecutor {
 
-	void executeCommandsFixingUnic(List<String> commands) {
+	private ExecutorMode executorMode;
+
+	void executeCommands(List<String> commands, ExecutorMode executorMode) {
+		this.executorMode = executorMode;
 		for (String command : commands) {
 			// xjc -encoding UTF-8 -d D:\work\generateSpark\jaxb-ri-2.2.6_old\bin\20200203\src\AAA D:\work\generateSpark\jaxb-ri-2.2.6_old\bin\20200203\CompanyStructure.xsd
 			executeCommand(command);
@@ -32,10 +35,13 @@ public class CmdExecutor {
 			while ((line = inputReader.readLine()) != null || (error = errorReader.readLine()) != null) {
 				System.out.println(line);
 
-				// Если только что выполнилась генерация класса,
-				// который должен быть переименован, поскольку обладает уникальным контентом, то "чиним" его
-				if (Constants.KNOWN_UNIC_CONTENT_CLASSES.keySet().contains(line)) {
-					ClassFixer.class.newInstance().fixClass(line, command);
+				// Если включена починка файлов
+				if (executorMode.equals(ExecutorMode.FIXING)) {
+					// Если только что выполнилась генерация класса,
+					// который должен быть переименован, поскольку обладает уникальным контентом, то "чиним" его
+					if (Constants.KNOWN_UNIC_CONTENT_CLASSES.keySet().contains(line)) {
+						ClassFixer.class.newInstance().fixClass(line, command);
+					}
 				}
 
 				if (error != null) {
@@ -57,5 +63,9 @@ public class CmdExecutor {
 		}
 	}
 
+	public enum ExecutorMode {
+		AS_IS,
+		FIXING;
+	}
 
 }
