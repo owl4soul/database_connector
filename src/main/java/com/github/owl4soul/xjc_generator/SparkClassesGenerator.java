@@ -1,5 +1,13 @@
 package com.github.owl4soul.xjc_generator;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -7,13 +15,82 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class SparkClassesGenerator {
 
-	private String sparkDirName = "20191225";
-	private String sparkSchemasVersion = "v2_52";
+	private String sparkDirName = "20200203";
+	private String sparkSchemasVersion = "v2_66";
 
-	private void sparkGenerateCreateDirs() throws IOException {
+	void readNode_Test() throws ParserConfigurationException, IOException, SAXException {
+		String sparkFilesDir = "D:\\work\\generateSpark\\jaxb-ri-2.2.6_old\\bin\\" + sparkDirName;
+		File sourceDir = new File(sparkFilesDir);
+
+		// Получим первую .xsd
+		File xsd = sourceDir.listFiles()[0].isDirectory() ? sourceDir.listFiles()[1] : sourceDir.listFiles()[0];
+
+		// Создаем document builder
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+
+		Document document = builder.parse(xsd);
+
+		///////////////////////
+		NodeList nodeList = document.getElementsByTagName("xs:element");
+
+		boolean hasChildren = nodeList.getLength() > 0;
+		NodeList childrenNodeList = null;
+
+
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				childrenNodeList = getChildren((Element) nodeList.item(i));
+				while (hasChildren) {
+					for (int j = 0; j < childrenNodeList.getLength(); j++) {
+						NodeList inner = ((Element)childrenNodeList.item(j)).getElementsByTagName("xs:element");
+						for (int k = 0; k < inner.getLength(); k++) {
+							hasChildren = getChildren((Element) inner.item(k)).getLength() > 0 ? true : false;
+						}
+					}
+				}
+			}
+
+
+//		for (int i = 0; i < nodeList.getLength(); i++) {
+//			Element element = (Element) nodeList.item(i);
+//			if (element.hasAttributes()) {
+//				String name = element.getAttribute("name");
+//				String type = element.getAttribute("type");
+//				System.out.println(name + " : " + type);
+//			}
+//		}
+	}
+
+
+
+	private NodeList getChildren(Element element) {
+		System.out.println("CHILDREN FOR " + element.getAttribute("name") + " : " + element.getAttribute("type") + " -> ");
+		NodeList childNodes = null;
+		if (element.hasChildNodes()) {
+			childNodes = element.getElementsByTagName("xs:element");
+			for (int i = 0; i < childNodes.getLength(); i++) {
+				Element child = (Element) childNodes.item(i);
+				if (child.hasAttributes()) {
+					String name = child.getAttribute("name");
+					String type = child.getAttribute("type");
+					System.out.println(name + " : " + type);
+				}
+			}
+		}
+		return childNodes;
+	}
+
+
+
+
+
+
+
+	void sparkGenerateCreateDirs() throws IOException {
 
 		String sparkFilesDir = "D:\\work\\generateSpark\\jaxb-ri-2.2.6_old\\bin\\" + sparkDirName;
 		File sourceDir = new File(sparkFilesDir);
@@ -48,7 +125,7 @@ public class SparkClassesGenerator {
 
 
 
-	private void sparkReplacePackajeInGeneratedFiles() throws IOException {
+	void sparkReplacePackajeInGeneratedFiles() throws IOException {
 
 		String rootDirstr = "D:\\work\\generateSpark\\jaxb-ri-2.2.6_old\\bin\\" + sparkDirName + "\\src";
 		File rootDir = new File(rootDirstr);
