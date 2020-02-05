@@ -169,10 +169,17 @@ public class ClassFixer {
 	}
 
 	private enum TargetTriggers {
-		ROOT_ELEMENT_RESPONSE("Response", "@XmlRootElement(name = \"Response\")"),
-		PUBLIC_CLASS_RESPONSE("Response", "public class Response"),
-		PUBLIC_CLASS_OBJECTFACTORY("ObjectFactory", "public class ObjectFactory"),
-		PUBLIC_CLASS_INCLUDEINLIST("IncludeInList", "public class IncludeInList");
+		QUOTED_INCLUDEINLIST("IncludeInList","\"IncludeInList\""),
+		QUOTED_RESPONSE("Response", "\"Response\""),
+		PUBLIC_CLASS_RESPONSE(" Response", "Response"),
+		PUBLIC_CLASS_OBJECTFACTORY(" ObjectFactory", "ObjectFactory"),
+		PUBLIC_CLASS_INCLUDEINLIST(" IncludeInList", "IncludeInList"),
+		GENERATED_POINT("generated.", "generated."){
+			@Override
+			String getFixedLineRepresentation(String line, String postfix) {
+				return line.replace(targetCharsToReplace, "");
+			}
+		};
 
 		String targetCharsToReplace;
 		String lineRepresentation;

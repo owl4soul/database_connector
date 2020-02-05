@@ -29,20 +29,11 @@ public class Application {
 
 		// Шаг шестой: переносим файлы с уникальным контентом, фикся внутри и переименовывая сам файл с использованием префикса папки, в которой он находился (= имени xsd, по которой был сгенерирован)
 		ClassFixer.class.newInstance().moveFiles();
-
-
-//		// Сгенерируем список команд для xcj
-//		List<String> xjcCommands = XjcComandsInitializer.class.newInstance().generateXjcCommands();
-//
-//		// Выполним генерацию классов с помощью команд для xcj
-//		CmdExecutor.class.newInstance().executeCommands(xjcCommands);
-
-//		ClassFixer.class.newInstance().moveFiles();
 	}
 
 
 	/**
-	 * Обрезанный метод Саши.
+	 * Обрезанный метод Александра Казанцева.
 	 * @throws IOException
 	 */
 	static void sparkGenerateCreateDirs() throws IOException {
