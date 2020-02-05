@@ -171,6 +171,8 @@ public class ClassFixer {
 	private enum TargetTriggers {
 		QUOTED_INCLUDEINLIST("IncludeInList","\"IncludeInList\""),
 		QUOTED_RESPONSE("Response", "\"Response\""),
+		TRIANGLE_BRACKETS_RESPONSE("Response", "<Response"),
+		CYCLE_BRACKETS_RESPONSE("Response", "(Response"),
 		PUBLIC_CLASS_RESPONSE(" Response", "Response"),
 		PUBLIC_CLASS_OBJECTFACTORY(" ObjectFactory", "ObjectFactory"),
 		PUBLIC_CLASS_INCLUDEINLIST(" IncludeInList", "IncludeInList"),
