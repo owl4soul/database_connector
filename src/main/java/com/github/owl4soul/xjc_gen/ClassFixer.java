@@ -110,6 +110,7 @@ public class ClassFixer {
 					fixedName = file.getName().replace(".java", "") + "_" + postfix + ".java";
 					// Получаем исправленную строку и записываем ее в буфер контента, с которым будем сохранять файл
 					String fixedLine = targetTrigger.getFixedLineRepresentation(line, postfix);
+					fixedLine = fixedLine.replaceAll("\\s[.]", ".");
 					stringBuilder.append(fixedLine + "\r\n");
 				} else {
 					stringBuilder.append(line + "\r\n");
@@ -178,6 +179,12 @@ public class ClassFixer {
 			@Override
 			String getFixedLineRepresentation(String line, String postfix) {
 				return line.replace(targetCharsToReplace, Constants.PATH_IN_PROJECT);
+			}
+		},
+		SPACE_POINT("\\s[.]", " .") {
+			@Override
+			String getFixedLineRepresentation(String line, String postfix) {
+				return line.replaceAll(targetCharsToReplace, ".");
 			}
 		};
 

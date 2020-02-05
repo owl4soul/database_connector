@@ -5,13 +5,15 @@ import java.util.Map;
 
 public class Constants {
 
-	static final String COMMON_FOLDER = "AAA";
+	static final String COMMON_FOLDER = "all_new";
+
+	static final String SCHEMAS_VERSION = "v2_52";
 
 	static final String PATH_IN_PROJECT =
-			"ru.spi2.irule.javaee.web.services.clients.spark.v2_52." + COMMON_FOLDER +".generated.";
+			"ru.spi2.irule.javaee.web.services.clients.spark." + SCHEMAS_VERSION + "." + COMMON_FOLDER +".generated.";
 
 	// Имя директории, в которой лежат все схемы и папка src
-	static final String CURRENT_SPARK_DIR_NAME = "20200203";
+	static final String CURRENT_SPARK_DIR_NAME = "20200205";
 
 
 	static final String ROOT_PATH = "D:\\work\\generateSpark\\jaxb-ri-2.2.6_old\\bin\\";
