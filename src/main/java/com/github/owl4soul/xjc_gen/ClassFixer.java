@@ -12,8 +12,6 @@ import java.util.List;
 
 public class ClassFixer {
 
-	private static List<String> TARGET_LINES = Arrays.asList("@XmlRootElement", "public class Response", "public class ObjectFactory", "public class IncludeInList");
-
 	private String fixedName;
 
 	private boolean shouldReplaceFileWithFixed;
@@ -28,7 +26,7 @@ public class ClassFixer {
 		while (fileIterator.hasNext()) {
 			File javaFile = fileIterator.next();
 			String fileName = javaFile.getName();
-			if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java") || fileName.equals("IncludeInList.java")) {
+			if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java")) {
 				boolean succsesfullyDeleted = javaFile.delete();
 				if (!succsesfullyDeleted) {
 					System.out.println("COULD NOT DELETE FILE:  " + fileName);
@@ -55,7 +53,7 @@ public class ClassFixer {
 			List<File> javaFiles = Arrays.asList(targetDir.listFiles());
 			for (File javaFile : javaFiles) {
 				String fileName = javaFile.getName();
-				if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java") || fileName.equals("IncludeInList.java")) {
+				if (fileName.equals("ObjectFactory.java") || fileName.equals("Response.java")) {
 					// Достаем контент, который будем заменять вместе с названием файла
 					String fixedContent = readFixedContentFromFile(javaFile);
 					writeContentToFile(Constants.FULLPATH_TO_COMMON_FOLDER + fixedName, fixedContent);
@@ -169,17 +167,17 @@ public class ClassFixer {
 	}
 
 	private enum TargetTriggers {
-		QUOTED_INCLUDEINLIST("IncludeInList","\"IncludeInList\""),
+//		QUOTED_INCLUDEINLIST("IncludeInList","\"IncludeInList\""),
 		QUOTED_RESPONSE("Response", "\"Response\""),
 		TRIANGLE_BRACKETS_RESPONSE("Response", "<Response"),
 		CYCLE_BRACKETS_RESPONSE("Response", "(Response"),
 		PUBLIC_CLASS_RESPONSE(" Response", "Response"),
 		PUBLIC_CLASS_OBJECTFACTORY(" ObjectFactory", "ObjectFactory"),
-		PUBLIC_CLASS_INCLUDEINLIST(" IncludeInList", "IncludeInList"),
+//		PUBLIC_CLASS_INCLUDEINLIST(" IncludeInList", "IncludeInList"),
 		GENERATED_POINT("generated.", "generated."){
 			@Override
 			String getFixedLineRepresentation(String line, String postfix) {
-				return line.replace(targetCharsToReplace, "");
+				return line.replace(targetCharsToReplace, Constants.PATH_IN_PROJECT);
 			}
 		};
 
