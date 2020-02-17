@@ -8,6 +8,7 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
 
+@Deprecated
 public class XjcLauncher {
 
 	public static void main(String[] args)

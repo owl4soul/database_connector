@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 
+@Deprecated
 public class CmdExecutor {
 //	xjc -encoding UTF-8 -d D:\work\generateSpark\jaxb-ri-2.2.6_old\bin\20200203\src\ArchivedResult D:\work\generateSpark\jaxb-ri-2.2.6_old\bin\20200203\ArchivedResult.xsd
 

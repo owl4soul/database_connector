@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+@Deprecated
 public class SparkClassesGenerator {
 
 	private String sparkDirName = "20200203";
