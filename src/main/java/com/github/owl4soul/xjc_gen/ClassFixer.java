@@ -169,6 +169,13 @@ public class ClassFixer {
 
 	private enum TargetTriggers {
 //		QUOTED_INCLUDEINLIST("IncludeInList","\"IncludeInList\""),
+		// @XmlRootElement как раз не надо заменять
+		ROOT_ELEMENT_RESPONSE("Response", "@XmlRootElement(name = \"Response\")") {
+			@Override
+			String getFixedLineRepresentation(String line, String postfix) {
+			return line;
+			}
+		},
 		QUOTED_RESPONSE("Response", "\"Response\""),
 		TRIANGLE_BRACKETS_RESPONSE("Response", "<Response"),
 		CYCLE_BRACKETS_RESPONSE("Response", "(Response"),
