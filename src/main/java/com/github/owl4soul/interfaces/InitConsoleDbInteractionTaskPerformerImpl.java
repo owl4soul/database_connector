@@ -29,6 +29,7 @@ public class InitConsoleDbInteractionTaskPerformerImpl implements TaskPerformer 
 					PropertiesLoader.getDatabasePropertiesFromFile(Constants.DATABASE_PROPERTIES_FULL_PATH);
 		} catch (IOException e) {
 			LOGGER.error("No properties!", e);
+			System.exit(-1);
 		}
 
 		try (// Установка соединения с бд
