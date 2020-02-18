@@ -13,9 +13,9 @@ import java.util.Properties;
 /**
  * Инициализатор выполнения процесса консольного взаимодействия пользователя с бд.
  */
-public class InitConsoleDbInteractionTaskPerformerImpl implements TaskPerformer {
+public class ConsoleDbInteractionTaskPerformerImpl implements TaskPerformer {
 
-	private static final Logger LOGGER = Logger.getLogger(InitConsoleDbInteractionTaskPerformerImpl.class);
+	private static final Logger LOGGER = Logger.getLogger(ConsoleDbInteractionTaskPerformerImpl.class);
 
 	/**
 	 * В данном контексте выполнением задачи является установка подключения к бд и запуск сервиса реализующего
