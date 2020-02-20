@@ -25,15 +25,8 @@ public class ScheduleTaskService {
 
 	// Мапа для хранения запланированных задач
 	Map<String, ScheduledFuture<?>> scheduledFutureMap = new HashMap<>();
-//
-//	// Конструктор, принимающий на вход реализацию taskScheduler для инициализации вложенного интерфейса
-//	@Autowired
-//	public ScheduleTaskService(TaskScheduler taskScheduler) {
-//		this.taskScheduler = taskScheduler;
-//	}
 
 	// Добавление задачи в мапу запланированных задач
-	// Schedule Task to be executed every night at 00 or 12 am
 	public void addTaskToScheduler(String id, Runnable task) {
 		ScheduledFuture<?> scheduledTask = taskScheduler.schedule(task, new CronTrigger("0 0 0 * * ?", TimeZone
 				.getTimeZone(TimeZone.getDefault().getID())));
@@ -41,7 +34,6 @@ public class ScheduleTaskService {
 	}
 
 	// Добавление задачи в мапу запланированных задач
-	// Schedule Task to be executed every night at 00 or 12 am
 	public void addTaskToScheduler(String id, Runnable task, CronTrigger cronTrigger) {
 		ScheduledFuture<?> scheduledTask = taskScheduler.schedule(task, cronTrigger);
 		scheduledFutureMap.put(id, scheduledTask);
