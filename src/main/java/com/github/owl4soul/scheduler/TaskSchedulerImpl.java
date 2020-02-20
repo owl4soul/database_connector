@@ -3,6 +3,7 @@ package com.github.owl4soul.scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class TaskSchedulerImpl implements TaskScheduler {
 
 
-	ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 
 	@Override
 	public ScheduledFuture schedule(Runnable task, Date startTime) {
@@ -50,6 +50,12 @@ public class TaskSchedulerImpl implements TaskScheduler {
 
 	@Override
 	public ScheduledFuture schedule(Runnable task, Trigger trigger){
-		return Executors.newScheduledThreadPool(1).scheduleAtFixedRate(task, 5, 5, TimeUnit.SECONDS);
+
+		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+		threadPoolTaskScheduler.setPoolSize(5);
+		threadPoolTaskScheduler.initialize();
+
+		return threadPoolTaskScheduler.schedule(task, trigger);
+
 	}
 }
