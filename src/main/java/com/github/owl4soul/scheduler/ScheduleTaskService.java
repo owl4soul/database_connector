@@ -7,6 +7,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -39,11 +40,30 @@ public class ScheduleTaskService {
 		scheduledFutureMap.put(id, scheduledTask);
 	}
 
+	// Добавление задачи в мапу запланированных задач
+	// Schedule Task to be executed every night at 00 or 12 am
+	public void addTaskToScheduler(String id, Runnable task, CronTrigger cronTrigger) {
+		ScheduledFuture<?> scheduledTask = taskScheduler.schedule(task, cronTrigger);
+		scheduledFutureMap.put(id, scheduledTask);
+	}
+
 	// Слушатель обновления контекста
 	@EventListener({ContextRefreshedEvent.class })
 	void contextRefreshedEvent() {
 		// Здесь надо загрузить из дб таски в мапу.
 		System.out.println("Context has been refreshed");
+
+		Runnable task = new Taska();
+
+		addTaskToScheduler("Test_task_at_" + Instant.now(), task, new CronTrigger("*/10 * * * * *"));
 	}
+
+	private static class Taska implements Runnable {
+		@Override
+		public void run() {
+			System.out.println("Я - таска, сработавшая по расписанию!");
+		}
+	}
+
 
 }
