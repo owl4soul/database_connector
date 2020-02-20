@@ -7,6 +7,8 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.nio.file.Path;
@@ -14,7 +16,7 @@ import java.nio.file.Path;
 /**
  * Главный класс приложения, запускающий взаимодействие пользователя с базой данных.
  */
-public class App extends Application {
+public class App  {
 
     private static final Logger LOGGER = Logger.getLogger(App.class);
 
@@ -40,16 +42,9 @@ public class App extends Application {
                 "\nПо данному пути приложение ищет файл с настройками для подключения к базе данных...\n\n";
         System.out.println(currentPathMsg);
 
-		launch(args);
+		Program program = applicationContext.getBean(Program.class);
+		program.goOn(args);
 	}
 
-	/**
-	 * Запуск оконного приложения.
-	 * @param primaryStage главный стейдж.
-	 * @throws Exception любое исключение.
-	 */
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		MainMenu.initStageAndShow(primaryStage);
-	}
+
 }

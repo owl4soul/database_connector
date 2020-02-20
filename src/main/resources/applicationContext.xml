@@ -7,6 +7,6 @@
     http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:annotation-config>true</context:annotation-config>
-	<context:component-scan base-package="com.github.owl4soul.services"/>
+	<context:component-scan base-package="com.github.owl4soul"/>
 
 </beans>
