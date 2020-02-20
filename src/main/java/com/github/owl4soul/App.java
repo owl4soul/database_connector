@@ -1,10 +1,13 @@
 package com.github.owl4soul;
 
 import com.github.owl4soul.front.MainMenu;
+import com.github.owl4soul.services.TestService;
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.nio.file.Path;
 
@@ -15,8 +18,13 @@ public class App extends Application {
 
     private static final Logger LOGGER = Logger.getLogger(App.class);
 
+
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+
+		TestService testService = applicationContext.getBean(TestService.class);
+
+		System.out.println("Hello World!");
         Path currentApplicationCatalog = ApplicationStartupPathSignpost.getApplicationStartupPath();
         LOGGER.info("Current application catalog: " + currentApplicationCatalog);
 
