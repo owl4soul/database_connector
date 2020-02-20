@@ -1,8 +1,6 @@
 package com.github.owl4soul.scheduler;
 
 import org.springframework.scheduling.Trigger;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;

@@ -1,14 +1,9 @@
 package com.github.owl4soul;
 
-import com.github.owl4soul.front.MainMenu;
 import com.github.owl4soul.services.TestService;
 import com.github.owl4soul.util.ApplicationStartupPathSignpost;
-import javafx.application.Application;
-import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.nio.file.Path;
