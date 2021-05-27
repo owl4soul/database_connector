@@ -28,7 +28,7 @@ public class ExcelParser {
 	public static final String DESCRIPTION_REPLACEMENT = "[Описание]";
 
 	public static final String categoryCommentNameTemplate = "// [имя категории]";
-	public static final String psfsTemplate = "public static final String [ИМЯ_КОНСТАНТЫ] = [значение.константы] // [Русское имя]";
+	public static final String psfsTemplate = "public static final String [ИМЯ_КОНСТАНТЫ] = \"[значение.константы]\"; // [Русское имя]";
 	public static final String mapTemplate = "PRIVILEGE_FULL_INFO_MAP.put([ИМЯ_КОНСТАНТЫ], new PrivilegeFullInfo(\"[ИМЯ_КОНСТАНТЫ]\", \"[Русское имя]\", \"[Описание]\", \"[значение.константы]\"));";
 
 
@@ -104,34 +104,46 @@ public class ExcelParser {
 			mapBuilder.append(LS);
 			mapBuilder.append(template);
 			break;
-		case DATA:
-
-			PrivilegeDataRepresentation privilegeDataRepresentation = getPrivilegeRepresentationByRow(row);
-
-			// Для public static final String
-			// public static final String READ_ANY_MODEL = "read.any.model" // Открыть любую модель;
-			template = psfsTemplate;
-			template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
-			template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
-			template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
-			psfsBuilder.append(LS);
-			psfsBuilder.append(template);
-
-
-			// PRIVILEGE_FULL_INFO_MAP.put(READ_ANY_MODEL, new PrivilegeFullInfo("READ_ANY_MODEL", "Открыть любое описание модели", "Открыть любое описание модели", "read.any.model"));
-			template = mapTemplate;
-			template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
-			template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
-			template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
-			template = template.replace(DESCRIPTION_REPLACEMENT, privilegeDataRepresentation.description);
-			template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
-			mapBuilder.append(LS);
-			mapBuilder.append(template);
+		case DATA_NOT_FULL:
+			writeCodeRepresentationForDataRow(row, true);
+			break;
+		case DATA_FULL:
+			writeCodeRepresentationForDataRow(row, false);
 			break;
 		default:
 			break;
 		}
 
+	}
+
+	private void writeCodeRepresentationForDataRow(Row row, boolean mustBeUnusedCode) {
+		PrivilegeDataRepresentation privilegeDataRepresentation = getPrivilegeRepresentationByRow(row);
+
+		// Для public static final String
+		// public static final String READ_ANY_MODEL = "read.any.model" // Открыть любую модель;
+		String template = psfsTemplate;
+		template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
+		template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
+		template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
+		psfsBuilder.append(LS);
+		if (mustBeUnusedCode) {
+			psfsBuilder.append("// ");
+		}
+		psfsBuilder.append(template);
+
+
+		// PRIVILEGE_FULL_INFO_MAP.put(READ_ANY_MODEL, new PrivilegeFullInfo("READ_ANY_MODEL", "Открыть любое описание модели", "Открыть любое описание модели", "read.any.model"));
+		template = mapTemplate;
+		template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
+		template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
+		template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
+		template = template.replace(DESCRIPTION_REPLACEMENT, privilegeDataRepresentation.description);
+		template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
+		mapBuilder.append(LS);
+		if (mustBeUnusedCode) {
+			mapBuilder.append("// ");
+		}
+		mapBuilder.append(template);
 	}
 
 	private PrivilegeDataRepresentation getPrivilegeRepresentationByRow(Row row) {
@@ -150,32 +162,6 @@ public class ExcelParser {
 		return privilegeDataRepresentation;
 	}
 
-
-//	private RowType getRowTypeAndCountIt(Row row) {
-//		RowType rowType = RowType.getRowType(row);
-//		System.out.println("Тип строки: " + rowType);
-//
-//
-//		switch (rowType) {
-//		case NULL:
-//			this.docSummaryInfo.nullCount++;
-//			break;
-//		case TABLE_COLUMNS_TITLE:
-//			this.docSummaryInfo.tableColumnsTitlesCount++;
-//			break;
-//		case CATEGORY:
-//			this.docSummaryInfo.categoryCount++;
-//			break;
-//		case DATA:
-//			this.docSummaryInfo.dataCount++;
-//			break;
-//		default:
-//			System.out.println("Неопознанный тип строки");
-//		}
-//
-//		return rowType;
-//	}
-
 	private class DocSummaryInfo {
 		private int nullCount;
 		private int tableColumnsTitlesCount;
@@ -193,7 +179,8 @@ public class ExcelParser {
 		NULL,
 		TABLE_COLUMNS_TITLE,
 		CATEGORY,
-		DATA;
+		DATA_NOT_FULL,
+		DATA_FULL;
 
 		private static RowType getRowType(Row row) {
 			if (row == null) {
@@ -214,8 +201,15 @@ public class ExcelParser {
 				return CATEGORY;
 			}
 
-			// Во всех иных случаях это ДАННЫЕ
-			return DATA;
+			// Во всех иных случаях это данные по привилегиям
+
+			// Если это данные привилегии, но не все 4 ячейки заполнены, то это ДАННЫЕ_НЕПОЛНЫЕ
+			if (cell_val_0.isEmpty() || cell_val_1.isEmpty() || cell_val_2.isEmpty() || cell_val_3.isEmpty()) {
+				return DATA_NOT_FULL;
+			}
+
+			// Во всех иных случаях это ДАННЫЕ_ПОЛНЫЕ
+			return DATA_FULL;
 		}
 	}
 
