@@ -11,17 +11,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ExcelParser {
+public class ExcelParserWithGroup {
+
 
 	// Сводная служебная инфа (количество категорий, строк и тп)
 	private DocSummaryInfo docSummaryInfo;
 
-	private StringBuilder psfsBuilder;
-	private StringBuilder mapBuilder;
+	private StringBuilder psfsBuilderForPrivileges;
+	private StringBuilder mapBuilderForPrivileges;
+	private StringBuilder mapBuilderForGroupWithPrivileges;
+	private StringBuilder psfsBuilderForGroups;
 
 	public static final String LS = "\r\n";
 
@@ -31,10 +38,21 @@ public class ExcelParser {
 	public static final String CONSTANT_VALUE_REPLACEMENT = "[значение.константы]";
 	public static final String RUS_NAME_REPLACEMENT = "[Русское имя]";
 	public static final String DESCRIPTION_REPLACEMENT = "[Описание]";
+	public static final String BLOCK_LINES_ADDING_PRIVILEGE_TO_SET_REPLACEMENT = "[БЛОК СТРОК ДОБАВЛЕНИЯ ПРИВИЛЕГИЙ В СЕТ]"; // в составе которого используется шаблон addingPrivilegeToSetTemplate
 
 	public static final String categoryCommentNameTemplate = "// [имя категории]";
 	public static final String psfsTemplate = "public static final String [ИМЯ_КОНСТАНТЫ] = \"[значение.константы]\"; // [Русское имя]";
 	public static final String mapTemplate = "PRIVILEGE_FULL_INFO_MAP.put([ИМЯ_КОНСТАНТЫ], new PrivilegeFullInfo(\"[ИМЯ_КОНСТАНТЫ]\", \"[Русское имя]\", \"[Описание]\", \"[значение.константы]\"));";
+
+	// Для групп привилегий
+	//public static final String catMapTemplate = "CAT_MAP.put(\"[Русское имя]]\", \"[ИМЯ_КОНСТАНТЫ]\");";
+	public static final Map<GroupDataRepresentation, Set<String>> GROUP_MAP = new LinkedHashMap<>();
+	public static final String addingPrivilegeToSetTemplate = "privileges.add(Privilege.[ИМЯ_КОНСТАНТЫ]);"; // составляют БЛОК СТРОК ДОБАВЛЕНИЯ ПРИВИЛЕГИЙ В СЕТ
+	public static final String groupMapTemplate = "privileges = new HashSet<>();\n" +
+												  "[БЛОК СТРОК ДОБАВЛЕНИЯ ПРИВИЛЕГИЙ В СЕТ]\n" +
+												  "groupFullInfo = new PrivilegeGroupFullInfo([ИМЯ_КОНСТАНТЫ], \"[Русское имя]\", privileges);\n" +
+												  "DEFAULT_GROUP_PRIVILEGES.put([ИМЯ_КОНСТАНТЫ], groupFullInfo);";
+
 
 
 	public int privilegesCount;
@@ -43,8 +61,10 @@ public class ExcelParser {
 		System.out.println("Excel Parser [START]");
 		docSummaryInfo = new DocSummaryInfo();
 
-		psfsBuilder = new StringBuilder();
-		mapBuilder = new StringBuilder();
+		psfsBuilderForPrivileges = new StringBuilder();
+		mapBuilderForPrivileges = new StringBuilder();
+		mapBuilderForGroupWithPrivileges = new StringBuilder();
+		psfsBuilderForGroups = new StringBuilder();
 
 		String excelFilePath = "D:\\ExcelParserData\\doc.xlsx";
 
@@ -77,20 +97,72 @@ public class ExcelParser {
 		for (int i = 1; i < countOfAllDataRowsInSheet; i++) {
 			System.out.println("#" + (i + 1));
 			Row row = sheet.getRow(i);
-			parseRow(row);
+			parseRowAndPutAsGroupOrPrivilegeToMap(row);
+			//parseRow(row);
 		}
 
-		AtomicInteger count = new AtomicInteger();
-		Map<String, String> categories = new HashMap<>();
+		// Тут набралась полная мапа GROUP_MAP - теперь распишем по ней код для мапы класса PrivilegeGRoup
+		writeCodeByGroupedPrivilegesMap();
 
+		// Здесь имеем уже полностью сформированный код для наполнения мапы Групп в статическом блоке
+		// psf-нужны
+
+		AtomicInteger count = new AtomicInteger();
 		categoriesAll.forEach(s -> {
 			count.getAndIncrement();
-			System.out.println(count + ". " + s);
-
-			categories.put(s, count.toString());
+			//System.out.println(count + ". " + s);
 		});
-		System.out.println(psfsBuilder.toString());
-		System.out.println(mapBuilder.toString());
+		//System.out.println(psfsBuilderForPrivileges.toString());
+		//System.out.println(mapBuilderForPrivileges.toString());
+		System.out.println("ok");
+	}
+
+	private void writeCodeByGroupedPrivilegesMap() {
+		for (Map.Entry<GroupDataRepresentation, Set<String>> entryGroupCategories : GROUP_MAP.entrySet()) {
+			// Сперва добавим все Привилегии в сет, затем этот сет присеттим к groupPrivilegeFullInfo и сложим в МАПУ
+			StringBuilder allPrivilegesOfGroupAddingToSetSB = new StringBuilder();
+
+			// Сама Группа
+			GroupDataRepresentation groupDataRepresentation = entryGroupCategories.getKey();
+
+			// private static final String группы привилегий
+			String psfs = psfsTemplate;
+			psfs = psfs.replace(CONSTANT_NAME_REPLACEMENT, groupDataRepresentation.constantName);
+			psfs = psfs.replace(CONSTANT_VALUE_REPLACEMENT, groupDataRepresentation.constantName);
+			psfs = psfs.replace(RUS_NAME_REPLACEMENT, groupDataRepresentation.rusName);
+			psfsBuilderForGroups.append(psfs);
+			psfsBuilderForGroups.append(LS);
+
+			// Сет всех Привилегий в данной группе
+			Set<String> allPrivilegesOfGroupSet = entryGroupCategories.getValue();
+
+			boolean isNeedLS = false;
+			for (String eachPrivilegeOfGroup : allPrivilegesOfGroupSet) {
+				if (isNeedLS) {
+					allPrivilegesOfGroupAddingToSetSB.append(LS);
+				}
+				isNeedLS = true;
+				String template = addingPrivilegeToSetTemplate;
+				template = template.replace(CONSTANT_NAME_REPLACEMENT, eachPrivilegeOfGroup);
+
+				allPrivilegesOfGroupAddingToSetSB.append(template);
+			}
+
+			// Здесь уже составлен полный блок добавлений Привилегий в сет привилегий Группы: privileges.add(Privilege.[ИМЯ_КОНСТАНТЫ]);
+
+			String templateFullFillGroup = groupMapTemplate;
+			templateFullFillGroup =
+					templateFullFillGroup.replace(BLOCK_LINES_ADDING_PRIVILEGE_TO_SET_REPLACEMENT, allPrivilegesOfGroupAddingToSetSB.toString());
+			templateFullFillGroup = templateFullFillGroup.replace(CONSTANT_NAME_REPLACEMENT, groupDataRepresentation.constantName);
+			templateFullFillGroup = templateFullFillGroup.replace(RUS_NAME_REPLACEMENT, groupDataRepresentation.rusName);
+			templateFullFillGroup = templateFullFillGroup.replace(CONSTANT_NAME_REPLACEMENT, groupDataRepresentation.constantName);
+
+			String commentWithGroupName = categoryCommentNameTemplate;
+			commentWithGroupName =
+					commentWithGroupName.replace(CATEGORY_NAME_REPLACEMENT, groupDataRepresentation.rusName);
+			mapBuilderForGroupWithPrivileges.append("\r\n\n" + commentWithGroupName + "\n");
+			mapBuilderForGroupWithPrivileges.append(templateFullFillGroup);
+		}
 	}
 
 	public static List<String> categoriesAll = new ArrayList<>();
@@ -111,15 +183,15 @@ public class ExcelParser {
 
 			// Для public static final String
 			// // Модель
-			psfsBuilder.append(LS);
-			psfsBuilder.append(LS);
-			psfsBuilder.append(template);
+			psfsBuilderForPrivileges.append(LS);
+			psfsBuilderForPrivileges.append(LS);
+			psfsBuilderForPrivileges.append(template);
 
 			// Для мапы
 			// // Модель
-			mapBuilder.append(LS);
-			mapBuilder.append(LS);
-			mapBuilder.append(template);
+			mapBuilderForPrivileges.append(LS);
+			mapBuilderForPrivileges.append(LS);
+			mapBuilderForPrivileges.append(template);
 			break;
 		case DATA_NOT_FULL:
 			writeCodeRepresentationForDataRow(row, true);
@@ -130,7 +202,27 @@ public class ExcelParser {
 		default:
 			break;
 		}
+	}
 
+	private GroupDataRepresentation currentGroup; // Текущая (последняя) группа (которая парсится в настоящий момент) - меняем имя при каждом последовательном обнаружении группы категорий как типа строки
+
+	private void parseRowAndPutAsGroupOrPrivilegeToMap(Row row) {
+		// Определим тип строки экселя - что там содержится, привилегия или группа
+		RowType rowType = RowType.getRowType(row);
+
+		// Сложим все в мапу, чтоб ясно видеть все группы и привилегии, включенные в них (когда заполним мапу полностью - будем обрабатывать ее, составляя код):
+
+		switch (rowType) {
+		case CATEGORY:
+			GroupDataRepresentation groupDataRepresentation = getGroupRepresentationByRow(row);
+			currentGroup = groupDataRepresentation;
+
+			GROUP_MAP.computeIfAbsent(groupDataRepresentation, k -> new HashSet<>());
+			break;
+		case DATA_FULL: // TODO - DATA NOT FULL
+			PrivilegeDataRepresentation privilegeDataRepresentation = getPrivilegeRepresentationByRow(row);
+			GROUP_MAP.get(currentGroup).add(privilegeDataRepresentation.constantName);
+		}
 	}
 
 	private void writeCodeRepresentationForDataRow(Row row, boolean mustBeUnusedCode) {
@@ -142,11 +234,11 @@ public class ExcelParser {
 		template = template.replace(CONSTANT_NAME_REPLACEMENT, privilegeDataRepresentation.constantName);
 		template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
 		template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
-		psfsBuilder.append(LS);
+		psfsBuilderForPrivileges.append(LS);
 		if (mustBeUnusedCode) {
-			psfsBuilder.append("// ");
+			psfsBuilderForPrivileges.append("// ");
 		}
-		psfsBuilder.append(template);
+		psfsBuilderForPrivileges.append(template);
 
 
 		// PRIVILEGE_FULL_INFO_MAP.put(READ_ANY_MODEL, new PrivilegeFullInfo("READ_ANY_MODEL", "Открыть любое описание модели", "Открыть любое описание модели", "read.any.model"));
@@ -156,11 +248,23 @@ public class ExcelParser {
 		template = template.replace(RUS_NAME_REPLACEMENT, privilegeDataRepresentation.rusName);
 		template = template.replace(DESCRIPTION_REPLACEMENT, privilegeDataRepresentation.description);
 		template = template.replace(CONSTANT_VALUE_REPLACEMENT, privilegeDataRepresentation.shortName);
-		mapBuilder.append(LS);
+		mapBuilderForPrivileges.append(LS);
 		if (mustBeUnusedCode) {
-			mapBuilder.append("// ");
+			mapBuilderForPrivileges.append("// ");
 		}
-		mapBuilder.append(template);
+		mapBuilderForPrivileges.append(template);
+	}
+
+	private GroupDataRepresentation getGroupRepresentationByRow(Row row) {
+		GroupDataRepresentation groupDataRepresentation = new GroupDataRepresentation();
+
+		String cell_val_0 = row.getCell(0).getStringCellValue(); // АНГЛИЙСКОЕ_ИМЯ_КОНСТАНТЫ
+		String cell_val_2 = row.getCell(2).getStringCellValue(); // Русское имя
+
+		groupDataRepresentation.constantName = cell_val_0;
+		groupDataRepresentation.rusName = cell_val_2;
+
+		return groupDataRepresentation;
 	}
 
 	private PrivilegeDataRepresentation getPrivilegeRepresentationByRow(Row row) {
@@ -210,11 +314,11 @@ public class ExcelParser {
 				return TABLE_COLUMNS_TITLE;
 			}
 
-			// Если в первой колонке строки есть надпись, а в остальных трех нет надписи, то это КАТЕГОРИЯ
+			// Если в первой и третьей колонках строки есть надпись, а 2 и 4 - нет надписи, то это КАТЕГОРИЯ
 			String cell_val_1 = row.getCell(1).getStringCellValue();
 			String cell_val_2 = row.getCell(2).getStringCellValue();
 			String cell_val_3 = row.getCell(3).getStringCellValue();
-			if (!cell_val_0.isEmpty() && cell_val_1.isEmpty() && cell_val_2.isEmpty() && cell_val_3.isEmpty()) {
+			if (!cell_val_0.isEmpty() && cell_val_1.isEmpty() && !cell_val_2.isEmpty() && cell_val_3.isEmpty()) {
 				return CATEGORY;
 			}
 
@@ -229,6 +333,27 @@ public class ExcelParser {
 			return DATA_FULL;
 		}
 	}
+
+	private class GroupDataRepresentation {
+		private String constantName;
+		private String rusName;
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			GroupDataRepresentation that = (GroupDataRepresentation) o;
+			return Objects.equals(constantName, that.constantName) && Objects.equals(rusName, that.rusName);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(constantName, rusName);
+		}
+	}
+
 
 	private class PrivilegeDataRepresentation {
 		private String shortName;
