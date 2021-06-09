@@ -33,14 +33,13 @@ public class ExcelParserWithGroup {
 	public static final String LS = "\r\n";
 
 
-	public static final String CATEGORY_NAME_REPLACEMENT = "[имя категории]";
 	public static final String CONSTANT_NAME_REPLACEMENT = "[ИМЯ_КОНСТАНТЫ]";
 	public static final String CONSTANT_VALUE_REPLACEMENT = "[значение.константы]";
 	public static final String RUS_NAME_REPLACEMENT = "[Русское имя]";
 	public static final String DESCRIPTION_REPLACEMENT = "[Описание]";
 	public static final String BLOCK_LINES_ADDING_PRIVILEGE_TO_SET_REPLACEMENT = "[БЛОК СТРОК ДОБАВЛЕНИЯ ПРИВИЛЕГИЙ В СЕТ]"; // в составе которого используется шаблон addingPrivilegeToSetTemplate
 
-	public static final String categoryCommentNameTemplate = "// [имя категории]";
+	public static final String categoryCommentNameTemplate = "// [ИМЯ_КОНСТАНТЫ] - [Русское имя]";
 	public static final String psfsTemplate = "public static final String [ИМЯ_КОНСТАНТЫ] = \"[значение.константы]\"; // [Русское имя]";
 	public static final String mapTemplate = "PRIVILEGE_FULL_INFO_MAP.put([ИМЯ_КОНСТАНТЫ], new PrivilegeFullInfo(\"[ИМЯ_КОНСТАНТЫ]\", \"[Русское имя]\", \"[Описание]\", \"[значение.константы]\"));";
 
@@ -97,8 +96,8 @@ public class ExcelParserWithGroup {
 		for (int i = 1; i < countOfAllDataRowsInSheet; i++) {
 			System.out.println("#" + (i + 1));
 			Row row = sheet.getRow(i);
-			parseRowAndPutAsGroupOrPrivilegeToMap(row);
-			//parseRow(row);
+			//parseRowAndPutAsGroupOrPrivilegeToMap(row);
+			parseRow(row);
 		}
 
 		// Тут набралась полная мапа GROUP_MAP - теперь распишем по ней код для мапы класса PrivilegeGRoup
@@ -159,7 +158,9 @@ public class ExcelParserWithGroup {
 
 			String commentWithGroupName = categoryCommentNameTemplate;
 			commentWithGroupName =
-					commentWithGroupName.replace(CATEGORY_NAME_REPLACEMENT, groupDataRepresentation.rusName);
+					commentWithGroupName.replace(CONSTANT_NAME_REPLACEMENT, groupDataRepresentation.constantName);
+			commentWithGroupName =
+					commentWithGroupName.replace(RUS_NAME_REPLACEMENT, groupDataRepresentation.rusName);
 			mapBuilderForGroupWithPrivileges.append("\r\n\n" + commentWithGroupName + "\n");
 			mapBuilderForGroupWithPrivileges.append(templateFullFillGroup);
 		}
@@ -179,7 +180,8 @@ public class ExcelParserWithGroup {
 			categoriesAll.add(categoryName);
 
 			template = categoryCommentNameTemplate;
-			template = template.replace(CATEGORY_NAME_REPLACEMENT, categoryName);
+			template = template.replace(CONSTANT_NAME_REPLACEMENT, categoryName);
+			template = template.replace(RUS_NAME_REPLACEMENT, row.getCell(2).getStringCellValue());
 
 			// Для public static final String
 			// // Модель
